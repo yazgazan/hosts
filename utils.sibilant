@@ -1,0 +1,55 @@
+
+(defun split (a b)
+  (a.split b))
+
+(defun map (a b)
+  (a.map b))
+
+(defun filter (a b)
+  (a.filter b))
+
+(defun tail (a)
+    (a.slice 1))
+
+(defun head (a)
+  (if (= a undefined)
+    (list)
+    (first a)))
+
+(defun join (a b)
+  (b.join a))
+
+(defun indexOf (a b)
+  (a.indexOf b))
+
+(defun is-group-part (entry)
+  (if (!= (entry.indexOf "::") -1)
+    true
+    false))
+
+(defun get-group-part (entry)
+  (head (entry.split "::")))
+
+(defun get-entry-part (entry)
+  (head (tail (entry.split "::"))))
+
+(defun push (a b)
+  (a.push b)
+  a)
+
+(defun push-front (a b)
+  (a.unshift b)
+  a)
+
+(defun hosts-to-string (hosts)
+  (if (= hosts.length 0)
+    ""
+    (+
+      (+ (join " " (head hosts)) "\n")
+      (hosts-to-string (tail hosts)))))
+
+(defun write-to-file (file-name hosts)
+  (fs.writeFileSync
+    file-name
+    (hosts-to-string hosts)))
+

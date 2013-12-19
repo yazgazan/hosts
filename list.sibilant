@@ -1,0 +1,6 @@
+
+(include "./utils")
+
+(defun cmd-list (hosts)
+  (console.log hosts))
+

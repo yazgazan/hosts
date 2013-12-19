@@ -1,0 +1,68 @@
+#!sibilant -x
+
+(include "./utils")
+(include "./get")
+(include "./set")
+(include "./enable")
+(include "./disable")
+(include "./list")
+(include "./help")
+(include "./create")
+
+(defvar fs (require 'fs))
+(defvar hosts-file-path "/etc/hosts")
+
+(defun get-hosts (file-name)
+  (defun line-to-array (line)
+    (filter (split (line.replace /\t/g " ") " ")
+            (lambda (val) (!= val ""))))
+
+  (defun open-and-split (file-name splitter)
+    (split (fs.readFileSync file-name "ascii")
+           splitter))
+
+  (defun split-words-in-array (arr)
+    (filter (map arr line-to-array)
+            (lambda (val) (!= val.length 0))))
+
+  (split-words-in-array (open-and-split file-name "\n"))
+  )
+
+(defun get-options (argv)
+
+  (defun clean-argv (argv)
+    (tail (tail argv)))
+
+  (defun get-cmd (argv)
+    (head (clean-argv argv)))
+
+  (defun get-args (argv)
+    (tail (clean-argv argv)))
+
+  (hash
+    'cmd  (get-cmd argv)
+    'args (get-args argv))
+  )
+
+(scoped
+  (defvar hosts (get-hosts hosts-file-path))
+  (defvar options (get-options process.argv))
+
+  (switch (get options 'cmd)
+          ('get
+           (cmd-get hosts (get options 'args)))
+          ('set
+           (cmd-set hosts hosts-file-path (get options 'args)))
+          ('create
+           (cmd-create hosts hosts-file-path (get options 'args)))
+          ('enable
+           (cmd-enable hosts hosts-file-path (get options 'args)))
+          ('disable
+           (cmd-disable hosts hosts-file-path (get options 'args)))
+          ('list
+           (cmd-list hosts))
+          (default
+            (cmd-help))
+          )
+  )
+

@@ -1,0 +1,48 @@
+
+(include "./utils")
+
+(defun get-group (hosts group-part &optional in-group)
+  (when (not in-group)
+    (setf in-group false))
+  (if (= hosts.length 0)
+    (list)
+    (if (= in-group true)
+      (if (= (head (head hosts)) "#====")
+        (list)
+        (push-front (get-group (tail hosts) group-part true) (head hosts)))
+      (if (and (= (head (head hosts)) "#====")
+               (= (head (tail (head hosts))) group-part))
+        (progn
+          (get-group (tail hosts) group-part true))
+        (progn
+          (get-group (tail hosts) group-part false)))))
+  )
+
+(defun get-from-group (hosts group-part entry)
+  (defvar group (get-group hosts group-part))
+  (head (filter group (lambda (line)
+                        (if (!= (line.indexOf entry) -1)
+                          true
+                          false))))
+  )
+
+(defun get-from-anywhere (hosts entry)
+  (if (= hosts.length 0)
+    '()
+    (if (= (indexOf (head hosts) entry) -1)
+      (get-from-anywhere (tail hosts) entry)
+      (head hosts))))
+
+(defun cmd-get-single (hosts entry)
+  (if (is-group-part entry)
+    (if (= (get-entry-part entry) "")
+      (console.log (get-group hosts (get-group-part entry)))
+      (console.log
+        (get-from-group hosts (get-group-part entry) (get-entry-part entry))))
+    (console.log (get-from-anywhere hosts entry)))
+  )
+
+(defun cmd-get (hosts entries)
+  (each (entry) entries
+        (cmd-get-single hosts entry)))
+

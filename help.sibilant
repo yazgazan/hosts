@@ -1,0 +1,18 @@
+
+(include "./utils")
+
+(defvar help
+  "Usage : ./hosts <cmd> ...
+
+  \tget     (<group::> | <group::item> | <item> ...)
+  \tset     (<group::> | <group::item> | <item>) <value>
+  \tcreate  <group>
+  \tenable  (<group::> | <group::item> | <item> ...)
+  \tdisable (<group::> | <group::item> | <item> ...)
+  \tlist
+  \thelp
+  ")
+
+(defun cmd-help ()
+  (console.log help))
+

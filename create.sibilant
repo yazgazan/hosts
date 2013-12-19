@@ -1,0 +1,31 @@
+
+(include "./utils")
+
+(defun cmd-create-single (hosts group &optional exists?)
+  (when (not exists?)
+    (setf exists? false))
+  (if (= hosts.length 0)
+    (if (= exists? true)
+      (list)
+      (list
+        (list "#====" group)
+        (list "#====")))
+    (if (and (= (first (first hosts)) "#====")
+             (= (first (tail (first hosts))) group))
+      (push-front
+        (cmd-create-single (tail hosts) group true)
+        (head hosts))
+      (push-front
+        (cmd-create-single (tail hosts) group exists?)
+        (head hosts)))))
+
+(defun cmd-create (hosts file-name groups)
+  (if (= groups.length 0)
+    (progn
+      (console.log hosts)
+      (write-to-file file-name hosts))
+    (cmd-create
+      (cmd-create-single hosts (first groups))
+      file-name
+      (tail groups))))
+

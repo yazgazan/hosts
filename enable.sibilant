@@ -1,0 +1,99 @@
+
+(include "./utils")
+
+(defun cmd-enable-enable-entry (line)
+  (if (= (first line) "#")
+    (tail line)
+    line))
+
+(defun cmd-enable-group (hosts group &optional in-group)
+  (when (not in-group)
+    (setf in-group false))
+  (if (= hosts.length 0)
+    (list)
+    (if in-group
+      (if (= (first (first hosts)) "#====")
+        (push-front
+          (cmd-enable-group (tail hosts) group false)
+          (first hosts))
+        (push-front
+          (cmd-enable-group (tail hosts) group in-group)
+          (cmd-enable-enable-entry (first hosts))))
+      (if (and (= (first (first hosts)) "#====")
+               (= (first (tail (first hosts))) group))
+        (push-front
+          (cmd-enable-group (tail hosts) group true)
+          (first hosts))
+        (push-front
+          (cmd-enable-group (tail hosts) group in-group)
+          (first hosts))))))
+
+(defun cmd-enable-group-entry (hosts group entry &optional in-group &optional done)
+  (when (not in-group)
+    (setf in-group false))
+  (when (not done)
+    (setf done false))
+  (if (= hosts.length 0)
+    (list)
+    (if in-group
+      (if (= (first (first hosts)) "#====")
+        (push-front
+          (cmd-enable-group-entry (tail hosts) group entry false done)
+          (head hosts))
+        (if (or (= done true) (= (indexOf (head hosts) entry) -1))
+          (push-front
+            (cmd-enable-group-entry (tail hosts) group entry in-group done)
+            (head hosts))
+          (push-front
+            (cmd-enable-group-entry (tail hosts) group entry in-group true)
+            (cmd-enable-enable-entry (first hosts)))))
+      (if (and (= (first (first hosts)) "#====")
+               (= (first (tail (first hosts))) group))
+        (push-front
+          (cmd-enable-group-entry (tail hosts) group entry true done)
+          (head hosts))
+        (push-front
+          (cmd-enable-group-entry (tail hosts) group entry in-group done)
+          (head hosts))
+        ))))
+
+(defun cmd-enable-entry (hosts entry &optional done)
+  (when (not done)
+    (setf done false))
+  (if (= hosts.length 0)
+    (list)
+    (if (or (= done true) (= (indexOf (head hosts) entry) -1))
+      (push-front
+        (cmd-enable-entry (tail hosts) entry done)
+        (first hosts))
+      (push-front
+        (cmd-enable-entry (tail hosts) entry true)
+        (cmd-enable-enable-entry (first hosts))
+        ))))
+
+(defun cmd-enable-single (hosts file-name entry)
+  (if (is-group-part entry)
+    (if (= (get-entry-part entry) "")
+      (cmd-enable-group
+        hosts
+        (get-group-part entry))
+      (cmd-enable-group-entry
+        hosts
+        (get-group-part entry)
+        (get-entry-part entry)))
+    (cmd-enable-entry
+      hosts
+      entry)))
+
+(defun cmd-enable (hosts file-name entries)
+  (if (= entries.length 0)
+    (progn
+      (console.log hosts)
+      (write-to-file file-name hosts))
+    (if (= entries.length 0)
+      null
+      (cmd-enable
+        (cmd-enable-single hosts file-name (first entries))
+        file-name
+        (tail entries)))))
+
